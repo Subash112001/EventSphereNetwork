@@ -424,9 +424,9 @@ const EventTicketsPage = ({ params }: { params: { id: string } }) => {
 
 function Router() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gray-50">
       <Navbar />
-      <div className="flex-grow">
+      <div className="flex-grow flex flex-col">
         <Switch>
           <Route path="/" component={Home} />
           <Route path="/auth" component={AuthPage} />
