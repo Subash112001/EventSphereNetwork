@@ -28,6 +28,12 @@ const EventsListing = () => {
     location: '',
     distance: '10'
   });
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  // Initialize the search term from filters
+  useEffect(() => {
+    setSearchTerm(filters.search || '');
+  }, [filters.search]);
 
   // Convert filters to query params
   const getQueryParams = () => {
@@ -51,12 +57,53 @@ const EventsListing = () => {
     queryKey: ['/api/events', getQueryParams()],
   });
 
-  const events = data?.events || [];
-  const totalPages = data?.pagination?.totalPages || 1;
+  // Type checking for data
+  type QueryResponse = {
+    events: Event[];
+    pagination: {
+      currentPage: number;
+      totalPages: number;
+      totalItems: number;
+      pageSize: number;
+    }
+  };
+
+  const typedData = data as QueryResponse | undefined;
+  const events = typedData?.events || [];
+  const totalPages = typedData?.pagination?.totalPages || 1;
 
   const handleFiltersChange = (newFilters: FilterState) => {
     setFilters(newFilters);
     setCurrentPage(1); // Reset to page 1 when filters change
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleFiltersChange({
+      ...filters,
+      search: searchTerm
+    });
+  };
+
+  const handleCategoryChange = (value: string) => {
+    handleFiltersChange({
+      ...filters,
+      category: value
+    });
+  };
+
+  const handleDateRangeChange = (value: string) => {
+    handleFiltersChange({
+      ...filters,
+      dateRange: value
+    });
+  };
+
+  const handlePriceRangeChange = (value: string) => {
+    handleFiltersChange({
+      ...filters,
+      priceRange: value
+    });
   };
 
   const handleFavoriteToggle = async (eventId: number, isFavorite: boolean) => {
@@ -150,37 +197,6 @@ const EventsListing = () => {
   if (isError) {
     return <div className="p-6 text-center text-red-500">Error loading events. Please try again later.</div>;
   }
-
-  const [searchTerm, setSearchTerm] = useState('');
-  
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleFiltersChange({
-      ...filters,
-      search: searchTerm
-    });
-  };
-
-  const handleCategoryChange = (value: string) => {
-    handleFiltersChange({
-      ...filters,
-      category: value
-    });
-  };
-
-  const handleDateRangeChange = (value: string) => {
-    handleFiltersChange({
-      ...filters,
-      dateRange: value
-    });
-  };
-
-  const handlePriceRangeChange = (value: string) => {
-    handleFiltersChange({
-      ...filters,
-      priceRange: value
-    });
-  };
 
   return (
     <div className="bg-white shadow-sm rounded-lg overflow-hidden">
@@ -279,7 +295,7 @@ const EventsListing = () => {
             <div className="flex items-center justify-between border-t border-gray-200 px-4 py-4 sm:px-0 mt-6">
               <div>
                 <p className="text-sm text-gray-700">
-                  Showing <span className="font-medium">{((currentPage - 1) * 9) + 1}</span> to <span className="font-medium">{Math.min(currentPage * 9, data?.pagination?.totalItems || 0)}</span> of <span className="font-medium">{data?.pagination?.totalItems || 0}</span> results
+                  Showing <span className="font-medium">{((currentPage - 1) * 9) + 1}</span> to <span className="font-medium">{Math.min(currentPage * 9, typedData?.pagination?.totalItems || 0)}</span> of <span className="font-medium">{typedData?.pagination?.totalItems || 0}</span> results
                 </p>
               </div>
               {renderPagination()}
