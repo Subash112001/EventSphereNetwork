@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Switch, Route } from "wouter";
+import { useState, useMemo } from "react";
+import { Switch, Route, Link } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { apiRequest } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -25,26 +25,210 @@ const EventsPage = () => (
   </div>
 );
 
-const TicketsPage = () => (
-  <div className="container mx-auto py-8">
-    <h1 className="text-3xl font-bold mb-8">My Tickets</h1>
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <p className="text-gray-500">Here you can view all your purchased tickets.</p>
-      {/* Ticket listing goes here */}
-      <div className="mt-6 space-y-4">
-        {[1, 2, 3].map((ticket) => (
-          <div key={ticket} className="border rounded-md p-4 flex items-center justify-between">
-            <div>
-              <h3 className="font-medium">Tech Conference 2023</h3>
-              <p className="text-sm text-gray-500">Mar 15, 2023 · VIP Ticket</p>
+// Ticket Detail Page
+const TicketDetailPage = ({ params }: { params: { id: string } }) => {
+  const ticketId = parseInt(params.id);
+  const { data: ticket, isLoading, isError } = useQuery({
+    queryKey: ['/api/tickets', ticketId],
+    queryFn: async () => {
+      const response = await fetch(`/api/tickets/${ticketId}`);
+      if (!response.ok) throw new Error('Failed to fetch ticket');
+      return await response.json();
+    }
+  });
+
+  const { data: event } = useQuery({
+    queryKey: ['/api/events', ticket?.event_id],
+    queryFn: async () => {
+      if (!ticket?.event_id) return null;
+      const response = await fetch(`/api/events?eventId=${ticket.event_id}`);
+      if (!response.ok) throw new Error('Failed to fetch event');
+      const data = await response.json();
+      return data.events[0];
+    },
+    enabled: !!ticket?.event_id
+  });
+
+  if (isLoading) {
+    return <div className="container mx-auto py-8 text-center">Loading ticket details...</div>;
+  }
+
+  if (isError || !ticket) {
+    return <div className="container mx-auto py-8 text-center text-red-500">Ticket not found or error loading ticket details.</div>;
+  }
+
+  return (
+    <div className="container mx-auto py-8">
+      <div className="max-w-2xl mx-auto">
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="p-6">
+            <div className="flex justify-between items-start mb-6">
+              <h1 className="text-2xl font-bold text-gray-900">Ticket #{ticket.id}</h1>
+              <div className="bg-gradient-to-r from-primary/80 to-primary px-3 py-1 rounded-full text-white text-sm font-medium">
+                {ticket.ticket_type}
+              </div>
             </div>
-            <button className="text-primary hover:underline">View Ticket</button>
+            
+            <div className="border-t border-gray-200 pt-4 pb-2">
+              <h2 className="text-lg font-semibold mb-4">{event?.name || "Event"}</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Date & Time</p>
+                  <p className="font-medium">
+                    {event?.date 
+                      ? new Date(event.date).toLocaleDateString('en-US', { 
+                          weekday: 'short',
+                          month: 'short', 
+                          day: 'numeric', 
+                          year: 'numeric'
+                        }) + ' · ' + 
+                        new Date(event.date).toLocaleTimeString('en-US', { 
+                          hour: 'numeric', 
+                          minute: '2-digit',
+                          hour12: true 
+                        })
+                      : "Date not available"}
+                  </p>
+                </div>
+                
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Location</p>
+                  <p className="font-medium">{event?.location || "Location not available"}</p>
+                </div>
+                
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Price</p>
+                  <p className="font-medium">${ticket.price}</p>
+                </div>
+                
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Purchase Date</p>
+                  <p className="font-medium">
+                    {new Date(ticket.created_at).toLocaleDateString('en-US', { 
+                      month: 'short', 
+                      day: 'numeric', 
+                      year: 'numeric'
+                    })}
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="border-t border-gray-200 mt-6 pt-6">
+              <div className="flex justify-between">
+                <Link href="/tickets">
+                  <Button variant="outline">
+                    <i className="fas fa-arrow-left mr-2"></i>
+                    Back to My Tickets
+                  </Button>
+                </Link>
+                
+                <Button onClick={() => window.print()}>
+                  <i className="fas fa-print mr-2"></i>
+                  Print Ticket
+                </Button>
+              </div>
+            </div>
           </div>
-        ))}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
+
+const TicketsPage = () => {
+  const { data: tickets, isLoading, isError } = useQuery({
+    queryKey: ['/api/tickets'],
+    queryFn: async () => {
+      const response = await fetch('/api/tickets');
+      if (!response.ok) throw new Error('Failed to fetch tickets');
+      return await response.json();
+    }
+  });
+
+  const { data: eventsData } = useQuery({
+    queryKey: ['/api/events'],
+    queryFn: async () => {
+      const response = await fetch('/api/events');
+      if (!response.ok) throw new Error('Failed to fetch events');
+      return await response.json();
+    }
+  });
+
+  // Create a map of events by ID for quick lookup
+  const eventsMap = useMemo(() => {
+    const map = new Map();
+    if (eventsData?.events) {
+      eventsData.events.forEach((event: any) => {
+        map.set(event.id, event);
+      });
+    }
+    return map;
+  }, [eventsData]);
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-8">
+        <h1 className="text-3xl font-bold mb-8">My Tickets</h1>
+        <div className="bg-white rounded-lg shadow-md p-6 text-center">
+          <p className="text-gray-500">Loading your tickets...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="container mx-auto py-8">
+        <h1 className="text-3xl font-bold mb-8">My Tickets</h1>
+        <div className="bg-white rounded-lg shadow-md p-6 text-center">
+          <p className="text-red-500">Error loading tickets. Please try again later.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto py-8">
+      <h1 className="text-3xl font-bold mb-8">My Tickets</h1>
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <p className="text-gray-500">Here you can view all your purchased tickets.</p>
+        <div className="mt-6 space-y-4">
+          {tickets && tickets.length > 0 ? (
+            tickets.map((ticket: any) => {
+              const event = eventsMap.get(ticket.event_id);
+              return (
+                <div key={ticket.id} className="border rounded-md p-4 flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium">{event?.name || 'Unknown Event'}</h3>
+                    <p className="text-sm text-gray-500">
+                      {event ? new Date(event.date).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric'
+                      }) : 'Unknown date'} · {ticket.ticket_type} Ticket
+                    </p>
+                  </div>
+                  <Link href={`/tickets/${ticket.id}`}>
+                    <Button variant="link" className="text-primary hover:underline">View Ticket</Button>
+                  </Link>
+                </div>
+              );
+            })
+          ) : (
+            <div className="text-center py-6">
+              <p className="text-gray-500">You haven't purchased any tickets yet.</p>
+              <Link href="/events">
+                <Button className="mt-4">Browse Events</Button>
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const CreateEventPage = () => (
   <div className="container mx-auto py-8">
@@ -245,6 +429,7 @@ function Router() {
           <Route path="/events" component={() => <EventsPage />} />
           <Route path="/events/:id/tickets" component={EventTicketsPage} />
           <Route path="/tickets" component={() => <TicketsPage />} />
+          <Route path="/tickets/:id" component={TicketDetailPage} />
           <Route path="/create-event" component={() => <CreateEventPage />} />
           <Route path="/profile" component={() => <ProfilePage />} />
           <Route path="/settings" component={() => <SettingsPage />} />

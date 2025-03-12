@@ -4,8 +4,13 @@ import { storage } from "./storage";
 import { sendEmail } from "./email/templates";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { insertEventSchema } from "@shared/schema";
+import { setupAuth } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Set up authentication
+  setupAuth(app);
+
   // Error handling middleware for validation errors
   const handleValidationError = (err: unknown, res: any) => {
     if (err instanceof ZodError) {
@@ -224,6 +229,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get a specific ticket
+  app.get("/api/tickets/:id", async (req, res) => {
+    try {
+      const ticketId = parseInt(req.params.id);
+      
+      // In a real app, get the user ID from the session
+      const userId = 1; // Mock user ID for demonstration
+      
+      const ticket = await storage.getTicketById(ticketId);
+      
+      if (!ticket) {
+        return res.status(404).json({ message: "Ticket not found" });
+      }
+      
+      // Check if the ticket belongs to the current user
+      if (ticket.user_id !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      res.json(ticket);
+    } catch (err) {
+      handleValidationError(err, res);
+    }
+  });
+  
+  // Get all tickets for the current user
+  app.get("/api/tickets", async (req, res) => {
+    try {
+      // In a real app, get the user ID from the session
+      const userId = 1; // Mock user ID for demonstration
+      
+      const tickets = await storage.getUserTickets(userId);
+      res.json(tickets);
+    } catch (err) {
+      handleValidationError(err, res);
+    }
+  });
+  
+  // Create a new event
+  app.post("/api/events", async (req, res) => {
+    try {
+      // In a real app, get the user ID from the session
+      const userId = 1; // Mock user ID for demonstration
+      
+      const eventData = req.body;
+      eventData.organizerId = userId;
+      
+      const validatedData = insertEventSchema.parse(eventData);
+      const event = await storage.createEvent(validatedData);
+      
+      res.status(201).json(event);
+    } catch (err) {
+      handleValidationError(err, res);
+    }
+  });
+  
+  // Get events created by the current user
+  app.get("/api/my-events", async (req, res) => {
+    try {
+      // In a real app, get the user ID from the session
+      const userId = 1; // Mock user ID for demonstration
+      
+      const events = await storage.getUserEvents(userId);
+      res.json(events);
+    } catch (err) {
+      handleValidationError(err, res);
+    }
+  });
+  
   // Get analytics metrics
   app.get("/api/analytics/metrics", async (req, res) => {
     try {
