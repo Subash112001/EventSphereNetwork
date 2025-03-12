@@ -27,25 +27,17 @@ const Navbar = () => {
               </Link>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <Link href="/dashboard">
-                <a className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive("/dashboard") ? "border-primary text-gray-900" : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"}`}>
-                  Dashboard
-                </a>
+              <Link href="/dashboard" className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive("/dashboard") ? "border-primary text-gray-900" : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"}`}>
+                Dashboard
               </Link>
-              <Link href="/events">
-                <a className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive("/events") ? "border-primary text-gray-900" : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"}`}>
-                  Events
-                </a>
+              <Link href="/events" className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive("/events") ? "border-primary text-gray-900" : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"}`}>
+                Events
               </Link>
-              <Link href="/tickets">
-                <a className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive("/tickets") ? "border-primary text-gray-900" : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"}`}>
-                  My Tickets
-                </a>
+              <Link href="/tickets" className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive("/tickets") ? "border-primary text-gray-900" : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"}`}>
+                My Tickets
               </Link>
-              <Link href="/create-event">
-                <a className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive("/create-event") ? "border-primary text-gray-900" : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"}`}>
-                  Create Event
-                </a>
+              <Link href="/create-event" className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive("/create-event") ? "border-primary text-gray-900" : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"}`}>
+                Create Event
               </Link>
             </div>
           </div>
@@ -110,25 +102,17 @@ const Navbar = () => {
       {isMenuOpen && (
         <div className="sm:hidden">
           <div className="pt-2 pb-3 space-y-1">
-            <Link href="/dashboard">
-              <a className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${isActive("/dashboard") ? "border-primary text-primary-700 bg-primary-50" : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"}`}>
-                Dashboard
-              </a>
+            <Link href="/dashboard" className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${isActive("/dashboard") ? "border-primary text-primary-700 bg-primary-50" : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"}`}>
+              Dashboard
             </Link>
-            <Link href="/events">
-              <a className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${isActive("/events") ? "border-primary text-primary-700 bg-primary-50" : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"}`}>
-                Events
-              </a>
+            <Link href="/events" className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${isActive("/events") ? "border-primary text-primary-700 bg-primary-50" : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"}`}>
+              Events
             </Link>
-            <Link href="/tickets">
-              <a className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${isActive("/tickets") ? "border-primary text-primary-700 bg-primary-50" : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"}`}>
-                My Tickets
-              </a>
+            <Link href="/tickets" className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${isActive("/tickets") ? "border-primary text-primary-700 bg-primary-50" : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"}`}>
+              My Tickets
             </Link>
-            <Link href="/create-event">
-              <a className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${isActive("/create-event") ? "border-primary text-primary-700 bg-primary-50" : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"}`}>
-                Create Event
-              </a>
+            <Link href="/create-event" className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${isActive("/create-event") ? "border-primary text-primary-700 bg-primary-50" : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"}`}>
+              Create Event
             </Link>
           </div>
           <div className="pt-4 pb-3 border-t border-gray-200">
@@ -146,20 +130,14 @@ const Navbar = () => {
               </div>
             </div>
             <div className="mt-3 space-y-1">
-              <Link href="/profile">
-                <a className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
-                  Your Profile
-                </a>
+              <Link href="/profile" className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+                Your Profile
               </Link>
-              <Link href="/settings">
-                <a className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
-                  Settings
-                </a>
+              <Link href="/settings" className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+                Settings
               </Link>
-              <Link href="/logout">
-                <a className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
-                  Sign out
-                </a>
+              <Link href="/logout" className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+                Sign out
               </Link>
             </div>
           </div>
