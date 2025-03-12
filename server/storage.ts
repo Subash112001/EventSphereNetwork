@@ -87,8 +87,8 @@ export class MemStorage implements IStorage {
     this.notificationId = 1;
     
     // Create a memory store for sessions
-    const memoryStore = MemoryStore(session);
-    this.sessionStore = new memoryStore({
+    const MemoryStoreClass = MemoryStore(session);
+    this.sessionStore = new MemoryStoreClass({
       checkPeriod: 86400000 // Clear expired sessions every 24h
     });
     
@@ -103,11 +103,48 @@ export class MemStorage implements IStorage {
     );
   }
   
+  // Get specific ticket by ID
+  async getTicketById(id: number): Promise<Ticket | undefined> {
+    return this.tickets.get(id);
+  }
+  
   // Get user created events
   async getUserCreatedEvents(userId: number): Promise<Event[]> {
     return Array.from(this.events.values()).filter(
       event => event.creator_id === userId
     );
+  }
+  
+  // Get events created by user (for backward compatibility)
+  async getUserEvents(userId: number): Promise<Event[]> {
+    return this.getUserCreatedEvents(userId);
+  }
+  
+  // Create a new event
+  async createEvent(eventData: any): Promise<Event> {
+    const id = this.eventId++;
+    const now = new Date();
+    
+    const event: Event = {
+      id,
+      name: eventData.name,
+      description: eventData.description,
+      date: new Date(eventData.date),
+      location: eventData.location,
+      category: eventData.category,
+      image_url: eventData.image_url || "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4",
+      price_min: eventData.price_min || 0,
+      price_max: eventData.price_max || 100,
+      capacity: eventData.capacity || 100,
+      created_at: now,
+      updated_at: now,
+      creator_id: eventData.organizerId || 1,
+      attendees_count: 0,
+      price_range: `$${eventData.price_min || 0} - $${eventData.price_max || 100}`
+    };
+    
+    this.events.set(id, event);
+    return event;
   }
 
   private initializeData() {
