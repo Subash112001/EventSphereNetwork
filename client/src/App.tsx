@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, lazy, Suspense } from "react";
 import { Switch, Route, Link } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { apiRequest } from "./lib/queryClient";
@@ -7,9 +7,13 @@ import { useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+import { AuthProvider } from "@/hooks/use-auth";
+import { ProtectedRoute } from "@/lib/protected-route";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import Home from "@/pages/Home";
+import AuthPage from "@/pages/auth-page";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import EventsListing from "@/components/events/EventsListing";
@@ -425,14 +429,15 @@ function Router() {
       <div className="flex-grow">
         <Switch>
           <Route path="/" component={Home} />
-          <Route path="/dashboard" component={Dashboard} />
-          <Route path="/events" component={() => <EventsPage />} />
-          <Route path="/events/:id/tickets" component={EventTicketsPage} />
-          <Route path="/tickets" component={() => <TicketsPage />} />
-          <Route path="/tickets/:id" component={TicketDetailPage} />
-          <Route path="/create-event" component={() => <CreateEventPage />} />
-          <Route path="/profile" component={() => <ProfilePage />} />
-          <Route path="/settings" component={() => <SettingsPage />} />
+          <Route path="/auth" component={AuthPage} />
+          <ProtectedRoute path="/dashboard" component={Dashboard} />
+          <Route path="/events" component={EventsPage} />
+          <ProtectedRoute path="/events/:id/tickets" component={EventTicketsPage} />
+          <ProtectedRoute path="/tickets" component={() => <TicketsPage />} />
+          <ProtectedRoute path="/tickets/:id" component={TicketDetailPage} />
+          <ProtectedRoute path="/create-event" component={CreateEventPage} />
+          <ProtectedRoute path="/profile" component={ProfilePage} />
+          <ProtectedRoute path="/settings" component={SettingsPage} />
           <Route component={NotFound} />
         </Switch>
       </div>
@@ -444,8 +449,10 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router />
-      <Toaster />
+      <AuthProvider>
+        <Router />
+        <Toaster />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
