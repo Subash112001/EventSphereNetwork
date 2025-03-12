@@ -18,6 +18,8 @@ import {
   type NotificationPreferences
 } from "@shared/schema";
 import { formatISO, subDays, parseISO, format, addMonths } from "date-fns";
+import session from "express-session";
+import MemoryStore from "memorystore";
 
 // Interface for all storage operations
 export interface IStorage {
@@ -26,6 +28,11 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, userData: any): Promise<User>;
+  getUserTickets(userId: number): Promise<Ticket[]>;
+  getUserCreatedEvents(userId: number): Promise<Event[]>;
+  
+  // Session management
+  sessionStore: any;
   
   // Event operations
   getEvent(id: number): Promise<Event | undefined>;
@@ -65,6 +72,7 @@ export class MemStorage implements IStorage {
   private ticketId: number;
   private favoriteId: number;
   private notificationId: number;
+  public sessionStore: any;
 
   constructor() {
     this.users = new Map();
@@ -78,8 +86,28 @@ export class MemStorage implements IStorage {
     this.favoriteId = 1;
     this.notificationId = 1;
     
+    // Create a memory store for sessions
+    const memoryStore = MemoryStore(session);
+    this.sessionStore = new memoryStore({
+      checkPeriod: 86400000 // Clear expired sessions every 24h
+    });
+    
     // Initialize with some data
     this.initializeData();
+  }
+  
+  // Get user tickets
+  async getUserTickets(userId: number): Promise<Ticket[]> {
+    return Array.from(this.tickets.values()).filter(
+      ticket => ticket.user_id === userId
+    );
+  }
+  
+  // Get user created events
+  async getUserCreatedEvents(userId: number): Promise<Event[]> {
+    return Array.from(this.events.values()).filter(
+      event => event.creator_id === userId
+    );
   }
 
   private initializeData() {
