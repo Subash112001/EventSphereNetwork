@@ -90,8 +90,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         priceRange, 
         location, 
         distance,
-        page = "1"
+        page = "1",
+        eventId
       } = req.query;
+      
+      // If eventId is provided, return just that specific event
+      if (eventId) {
+        const event = await storage.getEvent(parseInt(eventId as string));
+        if (!event) {
+          return res.status(404).json({ message: "Event not found" });
+        }
+        
+        // Get a user ID (in a real app this would come from the session)
+        const userId = 1;
+        
+        // Check if this event is a favorite for the current user
+        let isFavorite = false;
+        try {
+          // Instead of trying to iterate through storage directly, let's just
+          // try to add a favorite and catch the error if it already exists
+          await storage.addFavorite(userId, parseInt(eventId as string));
+          await storage.removeFavorite(userId, parseInt(eventId as string));
+          isFavorite = false;
+        } catch (e: any) {
+          // If we get an error that it's already a favorite, then set isFavorite to true
+          if (e.message && e.message.includes("already")) {
+            isFavorite = true;
+          }
+        }
+        
+        return res.json({
+          events: [{
+            ...event,
+            is_favorite: isFavorite
+          }]
+        });
+      }
       
       const pageNumber = parseInt(page as string) || 1;
       const pageSize = 9; // Number of events per page

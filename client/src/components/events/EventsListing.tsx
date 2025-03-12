@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Event } from "@shared/schema";
 import EventCard from "./EventCard";
-import EventFilters, { ActiveFilter } from "./EventFilters";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface FilterState {
   search: string;
@@ -149,9 +151,112 @@ const EventsListing = () => {
     return <div className="p-6 text-center text-red-500">Error loading events. Please try again later.</div>;
   }
 
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleFiltersChange({
+      ...filters,
+      search: searchTerm
+    });
+  };
+
+  const handleCategoryChange = (value: string) => {
+    handleFiltersChange({
+      ...filters,
+      category: value
+    });
+  };
+
+  const handleDateRangeChange = (value: string) => {
+    handleFiltersChange({
+      ...filters,
+      dateRange: value
+    });
+  };
+
+  const handlePriceRangeChange = (value: string) => {
+    handleFiltersChange({
+      ...filters,
+      priceRange: value
+    });
+  };
+
   return (
     <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-      <EventFilters onFiltersChange={handleFiltersChange} />
+      <div className="p-4 border-b border-gray-200">
+        <form onSubmit={handleSearch} className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
+          <div className="flex w-full lg:col-span-2">
+            <Input
+              type="text"
+              placeholder="Search events..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="rounded-r-none"
+            />
+            <Button type="submit" className="rounded-l-none">
+              <i className="fas fa-search mr-1"></i>
+              Search
+            </Button>
+          </div>
+          
+          <div>
+            <Select value={filters.category} onValueChange={handleCategoryChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="Music">Music</SelectItem>
+                  <SelectItem value="Technology">Technology</SelectItem>
+                  <SelectItem value="Art & Culture">Art & Culture</SelectItem>
+                  <SelectItem value="Sports">Sports</SelectItem>
+                  <SelectItem value="Food & Drink">Food & Drink</SelectItem>
+                  <SelectItem value="Business">Business</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <Select value={filters.dateRange} onValueChange={handleDateRangeChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Date" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="all">Any Date</SelectItem>
+                  <SelectItem value="today">Today</SelectItem>
+                  <SelectItem value="tomorrow">Tomorrow</SelectItem>
+                  <SelectItem value="week">This Week</SelectItem>
+                  <SelectItem value="weekend">This Weekend</SelectItem>
+                  <SelectItem value="month">This Month</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <Select value={filters.priceRange} onValueChange={handlePriceRangeChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Price" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="all">Any Price</SelectItem>
+                  <SelectItem value="free">Free</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
+                  <SelectItem value="0-25">$0 - $25</SelectItem>
+                  <SelectItem value="25-50">$25 - $50</SelectItem>
+                  <SelectItem value="50-100">$50 - $100</SelectItem>
+                  <SelectItem value="100+">$100+</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+        </form>
+      </div>
       
       <div className="p-6">
         {events.length === 0 ? (
